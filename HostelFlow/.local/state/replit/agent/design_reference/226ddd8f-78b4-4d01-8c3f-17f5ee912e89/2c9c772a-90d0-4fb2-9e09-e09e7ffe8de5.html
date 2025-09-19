@@ -1,0 +1,965 @@
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Hostel Management System</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Noto+Sans+Bengali:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    borderRadius: {
+                        lg: "var(--radius)",
+                        md: "calc(var(--radius) - 2px)",
+                        sm: "calc(var(--radius) - 4px)",
+                    },
+                    colors: {
+                        background: "var(--background)",
+                        foreground: "var(--foreground)",
+                        card: {
+                            DEFAULT: "var(--card)",
+                            foreground: "var(--card-foreground)",
+                        },
+                        primary: {
+                            DEFAULT: "var(--primary)",
+                            foreground: "var(--primary-foreground)",
+                        },
+                        secondary: {
+                            DEFAULT: "var(--secondary)",
+                            foreground: "var(--secondary-foreground)",
+                        },
+                        muted: {
+                            DEFAULT: "var(--muted)",
+                            foreground: "var(--muted-foreground)",
+                        },
+                        accent: {
+                            DEFAULT: "var(--accent)",
+                            foreground: "var(--accent-foreground)",
+                        },
+                        border: "var(--border)",
+                        input: "var(--input)",
+                        ring: "var(--ring)",
+                    },
+                    fontFamily: {
+                        sans: ["Inter", "system-ui", "sans-serif"],
+                        bengali: ["Noto Sans Bengali", "system-ui", "sans-serif"],
+                    }
+                },
+            }
+        };
+    </script>
+    <style>
+        :root {
+            --background: hsl(210 40% 98%);
+            --foreground: hsl(222.2 84% 4.9%);
+            --card: hsl(0 0% 100%);
+            --card-foreground: hsl(222.2 84% 4.9%);
+            --primary: hsl(221.2 83.2% 53.3%);
+            --primary-foreground: hsl(210 40% 98%);
+            --secondary: hsl(210 40% 96%);
+            --secondary-foreground: hsl(222.2 84% 4.9%);
+            --muted: hsl(210 40% 96%);
+            --muted-foreground: hsl(215.4 16.3% 46.9%);
+            --accent: hsl(210 40% 96%);
+            --accent-foreground: hsl(222.2 84% 4.9%);
+            --border: hsl(214.3 31.8% 91.4%);
+            --input: hsl(214.3 31.8% 91.4%);
+            --ring: hsl(221.2 83.2% 53.3%);
+            --radius: 0.5rem;
+        }
+        
+        .bengali-text {
+            font-family: 'Noto Sans Bengali', sans-serif;
+        }
+        
+        .floor-room {
+            transition: all 0.2s ease-in-out;
+        }
+        
+        .floor-room:hover {
+            transform: scale(1.05);
+        }
+        
+        .sidebar-item {
+            transition: all 0.2s ease-in-out;
+        }
+        
+        .sidebar-item:hover {
+            background-color: hsl(var(--accent));
+            color: hsl(var(--primary));
+        }
+        
+        .sidebar-item.active {
+            background-color: hsl(var(--primary));
+            color: hsl(var(--primary-foreground));
+        }
+        
+        .metric-card {
+            transition: all 0.2s ease-in-out;
+        }
+        
+        .metric-card:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 10px 25px -3px rgba(0, 0, 0, 0.1);
+        }
+        
+        .status-occupied { background-color: #EF4444; }
+        .status-vacant { background-color: #10B981; }
+        .status-maintenance { background-color: #F59E0B; }
+        
+        .table-row:hover {
+            background-color: hsl(var(--muted));
+        }
+        
+        .language-switch {
+            position: relative;
+            display: inline-block;
+            width: 60px;
+            height: 30px;
+        }
+        
+        .language-switch input {
+            opacity: 0;
+            width: 0;
+            height: 0;
+        }
+        
+        .slider {
+            position: absolute;
+            cursor: pointer;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background-color: #ccc;
+            transition: .4s;
+            border-radius: 30px;
+        }
+        
+        .slider:before {
+            position: absolute;
+            content: "";
+            height: 22px;
+            width: 22px;
+            left: 4px;
+            bottom: 4px;
+            background-color: white;
+            transition: .4s;
+            border-radius: 50%;
+        }
+        
+        input:checked + .slider {
+            background-color: hsl(var(--primary));
+        }
+        
+        input:checked + .slider:before {
+            transform: translateX(30px);
+        }
+    </style>
+</head>
+<body class="bg-background font-sans">
+    <!-- @COMPONENT: Header -->
+    <header class="bg-card border-b border-border h-16 fixed top-0 left-0 right-0 z-50">
+        <div class="flex items-center justify-between h-full px-6">
+            <div class="flex items-center space-x-4">
+                <i class="fas fa-building text-primary text-2xl"></i>
+                <h1 class="text-xl font-semibold text-foreground" data-en="Hostel Management System" data-bn="হোস্টেল ব্যবস্থাপনা সিস্টেম">Hostel Management System</h1>
+            </div>
+            
+            <div class="flex items-center space-x-6">
+                <!-- Language Toggle -->
+                <div class="flex items-center space-x-3">
+                    <span class="text-sm text-muted-foreground" id="lang-en">EN</span>
+                    <label class="language-switch">
+                        <input type="checkbox" id="language-toggle">
+                        <span class="slider"></span>
+                    </label>
+                    <span class="text-sm text-muted-foreground bengali-text" id="lang-bn">বাং</span>
+                </div>
+                
+                <!-- Notifications -->
+                <div class="relative">
+                    <button class="p-2 text-muted-foreground hover:text-foreground relative">
+                        <i class="fas fa-bell text-lg"></i>
+                        <span class="absolute -top-1 -right-1 bg-red-500 text-white text-xs rounded-full h-5 w-5 flex items-center justify-center">3</span>
+                    </button>
+                </div>
+                
+                <!-- Profile Avatar -->
+                <div class="flex items-center space-x-3">
+                    <div class="text-right">
+                        <p class="text-sm font-medium text-foreground" data-en="Admin User" data-bn="অ্যাডমিন ব্যবহারকারী">Admin User</p>
+                        <p class="text-xs text-muted-foreground" data-en="System Administrator" data-bn="সিস্টেম প্রশাসক">System Administrator</p>
+                    </div>
+                    <div class="w-10 h-10 bg-primary rounded-full flex items-center justify-center">
+                        <i class="fas fa-user text-primary-foreground"></i>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </header>
+    <!-- @END_COMPONENT: Header -->
+
+    <div class="flex h-screen pt-16">
+        <!-- @COMPONENT: Sidebar -->
+        <aside class="w-60 bg-card border-r border-border h-full overflow-y-auto">
+            <nav class="p-4 space-y-2">
+                <a href="#" class="sidebar-item active flex items-center space-x-3 px-4 py-3 rounded-lg">
+                    <i class="fas fa-tachometer-alt text-lg"></i>
+                    <span data-en="Dashboard" data-bn="ড্যাশবোর্ড">Dashboard</span>
+                </a>
+                
+                <a href="#" class="sidebar-item flex items-center space-x-3 px-4 py-3 rounded-lg">
+                    <i class="fas fa-users text-lg"></i>
+                    <span data-en="Student Management" data-bn="ছাত্র ব্যবস্থাপনা">Student Management</span>
+                </a>
+                
+                <a href="#" class="sidebar-item flex items-center space-x-3 px-4 py-3 rounded-lg">
+                    <i class="fas fa-bed text-lg"></i>
+                    <span data-en="Room Management" data-bn="রুম ব্যবস্থাপনা">Room Management</span>
+                </a>
+                
+                <a href="#" class="sidebar-item flex items-center space-x-3 px-4 py-3 rounded-lg">
+                    <i class="fas fa-building text-lg"></i>
+                    <span data-en="Floor Management" data-bn="ফ্লোর ব্যবস্থাপনা">Floor Management</span>
+                </a>
+                
+                <a href="#" class="sidebar-item flex items-center space-x-3 px-4 py-3 rounded-lg">
+                    <i class="fas fa-credit-card text-lg"></i>
+                    <span data-en="Payment Tracking" data-bn="পেমেন্ট ট্র্যাকিং">Payment Tracking</span>
+                </a>
+                
+                <a href="#" class="sidebar-item flex items-center space-x-3 px-4 py-3 rounded-lg">
+                    <i class="fas fa-chart-line text-lg"></i>
+                    <span data-en="Financial Reports" data-bn="আর্থিক প্রতিবেদন">Financial Reports</span>
+                </a>
+                
+                <a href="#" class="sidebar-item flex items-center space-x-3 px-4 py-3 rounded-lg">
+                    <i class="fas fa-exclamation-triangle text-lg"></i>
+                    <span data-en="Alerts & Notifications" data-bn="সতর্কতা ও বিজ্ঞপ্তি">Alerts & Notifications</span>
+                </a>
+                
+                <a href="#" class="sidebar-item flex items-center space-x-3 px-4 py-3 rounded-lg">
+                    <i class="fas fa-history text-lg"></i>
+                    <span data-en="Activity Logs" data-bn="কার্যকলাপ লগ">Activity Logs</span>
+                </a>
+                
+                <a href="#" class="sidebar-item flex items-center space-x-3 px-4 py-3 rounded-lg">
+                    <i class="fas fa-cogs text-lg"></i>
+                    <span data-en="Settings" data-bn="সেটিংস">Settings</span>
+                </a>
+                
+                <div class="pt-4 border-t border-border mt-4">
+                    <a href="#" class="sidebar-item flex items-center space-x-3 px-4 py-3 rounded-lg text-red-600">
+                        <i class="fas fa-sign-out-alt text-lg"></i>
+                        <span data-en="Logout" data-bn="লগ আউট">Logout</span>
+                    </a>
+                </div>
+            </nav>
+        </aside>
+        <!-- @END_COMPONENT: Sidebar -->
+
+        <!-- @COMPONENT: MainContent -->
+        <main class="flex-1 overflow-y-auto bg-background">
+            <div class="p-6 space-y-6">
+                <!-- Dashboard Header -->
+                <div class="flex items-center justify-between">
+                    <div>
+                        <h2 class="text-2xl font-bold text-foreground" data-en="Dashboard Overview" data-bn="ড্যাশবোর্ড ওভারভিউ">Dashboard Overview</h2>
+                        <p class="text-muted-foreground" data-en="Monitor and manage your hostel operations" data-bn="আপনার হোস্টেল অপারেশন মনিটর এবং পরিচালনা করুন">Monitor and manage your hostel operations</p>
+                    </div>
+                    <button class="bg-primary text-primary-foreground px-4 py-2 rounded-lg hover:bg-primary/90 transition-colors">
+                        <i class="fas fa-plus mr-2"></i>
+                        <span data-en="Add New Student" data-bn="নতুন ছাত্র যোগ করুন">Add New Student</span>
+                    </button>
+                </div>
+
+                <!-- Metrics Cards -->
+                <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+                    <div class="metric-card bg-card p-6 rounded-lg border border-border">
+                        <div class="flex items-center justify-between">
+                            <div>
+                                <p class="text-sm font-medium text-muted-foreground" data-en="Total Students" data-bn="মোট ছাত্র">Total Students</p>
+                                <p class="text-3xl font-bold text-foreground">247</p>
+                                <p class="text-sm text-green-600 flex items-center mt-1">
+                                    <i class="fas fa-arrow-up mr-1"></i>
+                                    <span data-en="+12 this month" data-bn="+১২ এই মাসে">+12 this month</span>
+                                </p>
+                            </div>
+                            <div class="w-12 h-12 bg-blue-100 rounded-lg flex items-center justify-center">
+                                <i class="fas fa-users text-primary text-xl"></i>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="metric-card bg-card p-6 rounded-lg border border-border">
+                        <div class="flex items-center justify-between">
+                            <div>
+                                <p class="text-sm font-medium text-muted-foreground" data-en="Total Rooms" data-bn="মোট রুম">Total Rooms</p>
+                                <p class="text-3xl font-bold text-foreground">120</p>
+                                <p class="text-sm text-muted-foreground flex items-center mt-1">
+                                    <span data-en="Across 6 floors" data-bn="৬টি ফ্লোর জুড়ে">Across 6 floors</span>
+                                </p>
+                            </div>
+                            <div class="w-12 h-12 bg-green-100 rounded-lg flex items-center justify-center">
+                                <i class="fas fa-bed text-green-600 text-xl"></i>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="metric-card bg-card p-6 rounded-lg border border-border">
+                        <div class="flex items-center justify-between">
+                            <div>
+                                <p class="text-sm font-medium text-muted-foreground" data-en="Available Beds" data-bn="উপলব্ধ বেড">Available Beds</p>
+                                <p class="text-3xl font-bold text-foreground">33</p>
+                                <p class="text-sm text-orange-600 flex items-center mt-1">
+                                    <i class="fas fa-arrow-down mr-1"></i>
+                                    <span data-en="-5 this week" data-bn="-৫ এই সপ্তাহে">-5 this week</span>
+                                </p>
+                            </div>
+                            <div class="w-12 h-12 bg-orange-100 rounded-lg flex items-center justify-center">
+                                <i class="fas fa-door-open text-orange-600 text-xl"></i>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="metric-card bg-card p-6 rounded-lg border border-border">
+                        <div class="flex items-center justify-between">
+                            <div>
+                                <p class="text-sm font-medium text-muted-foreground" data-en="Monthly Revenue" data-bn="মাসিক আয়">Monthly Revenue</p>
+                                <p class="text-3xl font-bold text-foreground">₹2,47,500</p>
+                                <p class="text-sm text-green-600 flex items-center mt-1">
+                                    <i class="fas fa-arrow-up mr-1"></i>
+                                    <span data-en="+8.2% vs last month" data-bn="+৮.২% বিগত মাসের তুলনায়">+8.2% vs last month</span>
+                                </p>
+                            </div>
+                            <div class="w-12 h-12 bg-purple-100 rounded-lg flex items-center justify-center">
+                                <i class="fas fa-rupee-sign text-purple-600 text-xl"></i>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Floor Management Section -->
+                <div class="bg-card p-6 rounded-lg border border-border">
+                    <div class="flex items-center justify-between mb-6">
+                        <h3 class="text-lg font-semibold text-foreground" data-en="Floor Management - Room Status" data-bn="ফ্লোর ব্যবস্থাপনা - রুমের অবস্থা">Floor Management - Room Status</h3>
+                        <div class="flex items-center space-x-4 text-sm">
+                            <div class="flex items-center space-x-2">
+                                <div class="w-3 h-3 rounded-full status-occupied"></div>
+                                <span data-en="Occupied" data-bn="দখলকৃত">Occupied</span>
+                            </div>
+                            <div class="flex items-center space-x-2">
+                                <div class="w-3 h-3 rounded-full status-vacant"></div>
+                                <span data-en="Vacant" data-bn="খালি">Vacant</span>
+                            </div>
+                            <div class="flex items-center space-x-2">
+                                <div class="w-3 h-3 rounded-full status-maintenance"></div>
+                                <span data-en="Maintenance" data-bn="রক্ষণাবেক্ষণ">Maintenance</span>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="grid grid-cols-1 lg:grid-cols-3 xl:grid-cols-6 gap-6">
+                        <!-- @MAP: floors.map(floor => ( -->
+                        <div class="space-y-3" data-mock="true">
+                            <h4 class="text-center font-medium text-foreground" data-en="Floor 6" data-bn="ফ্লোর ৬">Floor 6</h4>
+                            <div class="grid grid-cols-4 gap-2">
+                                <div class="floor-room w-8 h-8 rounded status-occupied cursor-pointer" title="Room 601 - Occupied"></div>
+                                <div class="floor-room w-8 h-8 rounded status-vacant cursor-pointer" title="Room 602 - Vacant"></div>
+                                <div class="floor-room w-8 h-8 rounded status-occupied cursor-pointer" title="Room 603 - Occupied"></div>
+                                <div class="floor-room w-8 h-8 rounded status-maintenance cursor-pointer" title="Room 604 - Maintenance"></div>
+                                <div class="floor-room w-8 h-8 rounded status-occupied cursor-pointer" title="Room 605 - Occupied"></div>
+                                <div class="floor-room w-8 h-8 rounded status-vacant cursor-pointer" title="Room 606 - Vacant"></div>
+                                <div class="floor-room w-8 h-8 rounded status-occupied cursor-pointer" title="Room 607 - Occupied"></div>
+                                <div class="floor-room w-8 h-8 rounded status-occupied cursor-pointer" title="Room 608 - Occupied"></div>
+                                <div class="floor-room w-8 h-8 rounded status-vacant cursor-pointer" title="Room 609 - Vacant"></div>
+                                <div class="floor-room w-8 h-8 rounded status-occupied cursor-pointer" title="Room 610 - Occupied"></div>
+                                <div class="floor-room w-8 h-8 rounded status-occupied cursor-pointer" title="Room 611 - Occupied"></div>
+                                <div class="floor-room w-8 h-8 rounded status-vacant cursor-pointer" title="Room 612 - Vacant"></div>
+                                <div class="floor-room w-8 h-8 rounded status-occupied cursor-pointer" title="Room 613 - Occupied"></div>
+                                <div class="floor-room w-8 h-8 rounded status-occupied cursor-pointer" title="Room 614 - Occupied"></div>
+                                <div class="floor-room w-8 h-8 rounded status-vacant cursor-pointer" title="Room 615 - Vacant"></div>
+                                <div class="floor-room w-8 h-8 rounded status-occupied cursor-pointer" title="Room 616 - Occupied"></div>
+                                <div class="floor-room w-8 h-8 rounded status-occupied cursor-pointer" title="Room 617 - Occupied"></div>
+                                <div class="floor-room w-8 h-8 rounded status-vacant cursor-pointer" title="Room 618 - Vacant"></div>
+                                <div class="floor-room w-8 h-8 rounded status-occupied cursor-pointer" title="Room 619 - Occupied"></div>
+                                <div class="floor-room w-8 h-8 rounded status-occupied cursor-pointer" title="Room 620 - Occupied"></div>
+                            </div>
+                        </div>
+
+                        <div class="space-y-3" data-mock="true">
+                            <h4 class="text-center font-medium text-foreground" data-en="Floor 5" data-bn="ফ্লোর ৫">Floor 5</h4>
+                            <div class="grid grid-cols-4 gap-2">
+                                <div class="floor-room w-8 h-8 rounded status-occupied cursor-pointer" title="Room 501 - Occupied"></div>
+                                <div class="floor-room w-8 h-8 rounded status-occupied cursor-pointer" title="Room 502 - Occupied"></div>
+                                <div class="floor-room w-8 h-8 rounded status-vacant cursor-pointer" title="Room 503 - Vacant"></div>
+                                <div class="floor-room w-8 h-8 rounded status-occupied cursor-pointer" title="Room 504 - Occupied"></div>
+                                <div class="floor-room w-8 h-8 rounded status-occupied cursor-pointer" title="Room 505 - Occupied"></div>
+                                <div class="floor-room w-8 h-8 rounded status-occupied cursor-pointer" title="Room 506 - Occupied"></div>
+                                <div class="floor-room w-8 h-8 rounded status-vacant cursor-pointer" title="Room 507 - Vacant"></div>
+                                <div class="floor-room w-8 h-8 rounded status-occupied cursor-pointer" title="Room 508 - Occupied"></div>
+                                <div class="floor-room w-8 h-8 rounded status-occupied cursor-pointer" title="Room 509 - Occupied"></div>
+                                <div class="floor-room w-8 h-8 rounded status-maintenance cursor-pointer" title="Room 510 - Maintenance"></div>
+                                <div class="floor-room w-8 h-8 rounded status-occupied cursor-pointer" title="Room 511 - Occupied"></div>
+                                <div class="floor-room w-8 h-8 rounded status-occupied cursor-pointer" title="Room 512 - Occupied"></div>
+                                <div class="floor-room w-8 h-8 rounded status-vacant cursor-pointer" title="Room 513 - Vacant"></div>
+                                <div class="floor-room w-8 h-8 rounded status-occupied cursor-pointer" title="Room 514 - Occupied"></div>
+                                <div class="floor-room w-8 h-8 rounded status-occupied cursor-pointer" title="Room 515 - Occupied"></div>
+                                <div class="floor-room w-8 h-8 rounded status-occupied cursor-pointer" title="Room 516 - Occupied"></div>
+                                <div class="floor-room w-8 h-8 rounded status-vacant cursor-pointer" title="Room 517 - Vacant"></div>
+                                <div class="floor-room w-8 h-8 rounded status-occupied cursor-pointer" title="Room 518 - Occupied"></div>
+                                <div class="floor-room w-8 h-8 rounded status-occupied cursor-pointer" title="Room 519 - Occupied"></div>
+                                <div class="floor-room w-8 h-8 rounded status-occupied cursor-pointer" title="Room 520 - Occupied"></div>
+                            </div>
+                        </div>
+
+                        <div class="space-y-3" data-mock="true">
+                            <h4 class="text-center font-medium text-foreground" data-en="Floor 4" data-bn="ফ্লোর ৪">Floor 4</h4>
+                            <div class="grid grid-cols-4 gap-2">
+                                <div class="floor-room w-8 h-8 rounded status-occupied cursor-pointer" title="Room 401 - Occupied"></div>
+                                <div class="floor-room w-8 h-8 rounded status-occupied cursor-pointer" title="Room 402 - Occupied"></div>
+                                <div class="floor-room w-8 h-8 rounded status-occupied cursor-pointer" title="Room 403 - Occupied"></div>
+                                <div class="floor-room w-8 h-8 rounded status-vacant cursor-pointer" title="Room 404 - Vacant"></div>
+                                <div class="floor-room w-8 h-8 rounded status-occupied cursor-pointer" title="Room 405 - Occupied"></div>
+                                <div class="floor-room w-8 h-8 rounded status-occupied cursor-pointer" title="Room 406 - Occupied"></div>
+                                <div class="floor-room w-8 h-8 rounded status-occupied cursor-pointer" title="Room 407 - Occupied"></div>
+                                <div class="floor-room w-8 h-8 rounded status-maintenance cursor-pointer" title="Room 408 - Maintenance"></div>
+                                <div class="floor-room w-8 h-8 rounded status-occupied cursor-pointer" title="Room 409 - Occupied"></div>
+                                <div class="floor-room w-8 h-8 rounded status-occupied cursor-pointer" title="Room 410 - Occupied"></div>
+                                <div class="floor-room w-8 h-8 rounded status-vacant cursor-pointer" title="Room 411 - Vacant"></div>
+                                <div class="floor-room w-8 h-8 rounded status-occupied cursor-pointer" title="Room 412 - Occupied"></div>
+                                <div class="floor-room w-8 h-8 rounded status-occupied cursor-pointer" title="Room 413 - Occupied"></div>
+                                <div class="floor-room w-8 h-8 rounded status-occupied cursor-pointer" title="Room 414 - Occupied"></div>
+                                <div class="floor-room w-8 h-8 rounded status-vacant cursor-pointer" title="Room 415 - Vacant"></div>
+                                <div class="floor-room w-8 h-8 rounded status-occupied cursor-pointer" title="Room 416 - Occupied"></div>
+                                <div class="floor-room w-8 h-8 rounded status-occupied cursor-pointer" title="Room 417 - Occupied"></div>
+                                <div class="floor-room w-8 h-8 rounded status-occupied cursor-pointer" title="Room 418 - Occupied"></div>
+                                <div class="floor-room w-8 h-8 rounded status-vacant cursor-pointer" title="Room 419 - Vacant"></div>
+                                <div class="floor-room w-8 h-8 rounded status-occupied cursor-pointer" title="Room 420 - Occupied"></div>
+                            </div>
+                        </div>
+
+                        <div class="space-y-3" data-mock="true">
+                            <h4 class="text-center font-medium text-foreground" data-en="Floor 3" data-bn="ফ্লোর ৩">Floor 3</h4>
+                            <div class="grid grid-cols-4 gap-2">
+                                <div class="floor-room w-8 h-8 rounded status-occupied cursor-pointer" title="Room 301 - Occupied"></div>
+                                <div class="floor-room w-8 h-8 rounded status-vacant cursor-pointer" title="Room 302 - Vacant"></div>
+                                <div class="floor-room w-8 h-8 rounded status-occupied cursor-pointer" title="Room 303 - Occupied"></div>
+                                <div class="floor-room w-8 h-8 rounded status-occupied cursor-pointer" title="Room 304 - Occupied"></div>
+                                <div class="floor-room w-8 h-8 rounded status-maintenance cursor-pointer" title="Room 305 - Maintenance"></div>
+                                <div class="floor-room w-8 h-8 rounded status-occupied cursor-pointer" title="Room 306 - Occupied"></div>
+                                <div class="floor-room w-8 h-8 rounded status-occupied cursor-pointer" title="Room 307 - Occupied"></div>
+                                <div class="floor-room w-8 h-8 rounded status-vacant cursor-pointer" title="Room 308 - Vacant"></div>
+                                <div class="floor-room w-8 h-8 rounded status-occupied cursor-pointer" title="Room 309 - Occupied"></div>
+                                <div class="floor-room w-8 h-8 rounded status-occupied cursor-pointer" title="Room 310 - Occupied"></div>
+                                <div class="floor-room w-8 h-8 rounded status-occupied cursor-pointer" title="Room 311 - Occupied"></div>
+                                <div class="floor-room w-8 h-8 rounded status-vacant cursor-pointer" title="Room 312 - Vacant"></div>
+                                <div class="floor-room w-8 h-8 rounded status-occupied cursor-pointer" title="Room 313 - Occupied"></div>
+                                <div class="floor-room w-8 h-8 rounded status-occupied cursor-pointer" title="Room 314 - Occupied"></div>
+                                <div class="floor-room w-8 h-8 rounded status-occupied cursor-pointer" title="Room 315 - Occupied"></div>
+                                <div class="floor-room w-8 h-8 rounded status-maintenance cursor-pointer" title="Room 316 - Maintenance"></div>
+                                <div class="floor-room w-8 h-8 rounded status-occupied cursor-pointer" title="Room 317 - Occupied"></div>
+                                <div class="floor-room w-8 h-8 rounded status-vacant cursor-pointer" title="Room 318 - Vacant"></div>
+                                <div class="floor-room w-8 h-8 rounded status-occupied cursor-pointer" title="Room 319 - Occupied"></div>
+                                <div class="floor-room w-8 h-8 rounded status-occupied cursor-pointer" title="Room 320 - Occupied"></div>
+                            </div>
+                        </div>
+
+                        <div class="space-y-3" data-mock="true">
+                            <h4 class="text-center font-medium text-foreground" data-en="Floor 2" data-bn="ফ্লোর ২">Floor 2</h4>
+                            <div class="grid grid-cols-4 gap-2">
+                                <div class="floor-room w-8 h-8 rounded status-occupied cursor-pointer" title="Room 201 - Occupied"></div>
+                                <div class="floor-room w-8 h-8 rounded status-occupied cursor-pointer" title="Room 202 - Occupied"></div>
+                                <div class="floor-room w-8 h-8 rounded status-vacant cursor-pointer" title="Room 203 - Vacant"></div>
+                                <div class="floor-room w-8 h-8 rounded status-occupied cursor-pointer" title="Room 204 - Occupied"></div>
+                                <div class="floor-room w-8 h-8 rounded status-occupied cursor-pointer" title="Room 205 - Occupied"></div>
+                                <div class="floor-room w-8 h-8 rounded status-occupied cursor-pointer" title="Room 206 - Occupied"></div>
+                                <div class="floor-room w-8 h-8 rounded status-vacant cursor-pointer" title="Room 207 - Vacant"></div>
+                                <div class="floor-room w-8 h-8 rounded status-occupied cursor-pointer" title="Room 208 - Occupied"></div>
+                                <div class="floor-room w-8 h-8 rounded status-occupied cursor-pointer" title="Room 209 - Occupied"></div>
+                                <div class="floor-room w-8 h-8 rounded status-occupied cursor-pointer" title="Room 210 - Occupied"></div>
+                                <div class="floor-room w-8 h-8 rounded status-maintenance cursor-pointer" title="Room 211 - Maintenance"></div>
+                                <div class="floor-room w-8 h-8 rounded status-occupied cursor-pointer" title="Room 212 - Occupied"></div>
+                                <div class="floor-room w-8 h-8 rounded status-vacant cursor-pointer" title="Room 213 - Vacant"></div>
+                                <div class="floor-room w-8 h-8 rounded status-occupied cursor-pointer" title="Room 214 - Occupied"></div>
+                                <div class="floor-room w-8 h-8 rounded status-occupied cursor-pointer" title="Room 215 - Occupied"></div>
+                                <div class="floor-room w-8 h-8 rounded status-occupied cursor-pointer" title="Room 216 - Occupied"></div>
+                                <div class="floor-room w-8 h-8 rounded status-vacant cursor-pointer" title="Room 217 - Vacant"></div>
+                                <div class="floor-room w-8 h-8 rounded status-occupied cursor-pointer" title="Room 218 - Occupied"></div>
+                                <div class="floor-room w-8 h-8 rounded status-occupied cursor-pointer" title="Room 219 - Occupied"></div>
+                                <div class="floor-room w-8 h-8 rounded status-occupied cursor-pointer" title="Room 220 - Occupied"></div>
+                            </div>
+                        </div>
+
+                        <div class="space-y-3" data-mock="true">
+                            <h4 class="text-center font-medium text-foreground" data-en="Floor 1" data-bn="ফ্লোর ১">Floor 1</h4>
+                            <div class="grid grid-cols-4 gap-2">
+                                <div class="floor-room w-8 h-8 rounded status-occupied cursor-pointer" title="Room 101 - Occupied"></div>
+                                <div class="floor-room w-8 h-8 rounded status-vacant cursor-pointer" title="Room 102 - Vacant"></div>
+                                <div class="floor-room w-8 h-8 rounded status-occupied cursor-pointer" title="Room 103 - Occupied"></div>
+                                <div class="floor-room w-8 h-8 rounded status-occupied cursor-pointer" title="Room 104 - Occupied"></div>
+                                <div class="floor-room w-8 h-8 rounded status-occupied cursor-pointer" title="Room 105 - Occupied"></div>
+                                <div class="floor-room w-8 h-8 rounded status-maintenance cursor-pointer" title="Room 106 - Maintenance"></div>
+                                <div class="floor-room w-8 h-8 rounded status-occupied cursor-pointer" title="Room 107 - Occupied"></div>
+                                <div class="floor-room w-8 h-8 rounded status-vacant cursor-pointer" title="Room 108 - Vacant"></div>
+                                <div class="floor-room w-8 h-8 rounded status-occupied cursor-pointer" title="Room 109 - Occupied"></div>
+                                <div class="floor-room w-8 h-8 rounded status-occupied cursor-pointer" title="Room 110 - Occupied"></div>
+                                <div class="floor-room w-8 h-8 rounded status-occupied cursor-pointer" title="Room 111 - Occupied"></div>
+                                <div class="floor-room w-8 h-8 rounded status-vacant cursor-pointer" title="Room 112 - Vacant"></div>
+                                <div class="floor-room w-8 h-8 rounded status-occupied cursor-pointer" title="Room 113 - Occupied"></div>
+                                <div class="floor-room w-8 h-8 rounded status-occupied cursor-pointer" title="Room 114 - Occupied"></div>
+                                <div class="floor-room w-8 h-8 rounded status-vacant cursor-pointer" title="Room 115 - Vacant"></div>
+                                <div class="floor-room w-8 h-8 rounded status-occupied cursor-pointer" title="Room 116 - Occupied"></div>
+                                <div class="floor-room w-8 h-8 rounded status-occupied cursor-pointer" title="Room 117 - Occupied"></div>
+                                <div class="floor-room w-8 h-8 rounded status-maintenance cursor-pointer" title="Room 118 - Maintenance"></div>
+                                <div class="floor-room w-8 h-8 rounded status-occupied cursor-pointer" title="Room 119 - Occupied"></div>
+                                <div class="floor-room w-8 h-8 rounded status-occupied cursor-pointer" title="Room 120 - Occupied"></div>
+                            </div>
+                        </div>
+                        <!-- @END_MAP -->
+                    </div>
+                </div>
+
+                <!-- Alerts Section -->
+                <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
+                    <div class="bg-card p-6 rounded-lg border border-border">
+                        <h3 class="text-lg font-semibold text-foreground mb-4" data-en="Recent Alerts" data-bn="সাম্প্রতিক সতর্কতা">Recent Alerts</h3>
+                        <div class="space-y-3">
+                            <div class="flex items-start space-x-3 p-3 bg-red-50 rounded-lg border border-red-200" data-mock="true">
+                                <i class="fas fa-exclamation-triangle text-red-500 mt-1"></i>
+                                <div class="flex-1">
+                                    <p class="text-sm font-medium text-red-800" data-en="Overdue Payment Alert" data-bn="বিলম্বিত পেমেন্ট সতর্কতা">Overdue Payment Alert</p>
+                                    <p class="text-xs text-red-600" data-en="3 students have pending payments for over 15 days" data-bn="৩ জন ছাত্রের ১৫ দিনের বেশি পেমেন্ট বকেয়া রয়েছে">3 students have pending payments for over 15 days</p>
+                                </div>
+                            </div>
+                            
+                            <div class="flex items-start space-x-3 p-3 bg-orange-50 rounded-lg border border-orange-200" data-mock="true">
+                                <i class="fas fa-tools text-orange-500 mt-1"></i>
+                                <div class="flex-1">
+                                    <p class="text-sm font-medium text-orange-800" data-en="Maintenance Required" data-bn="রক্ষণাবেক্ষণ প্রয়োজন">Maintenance Required</p>
+                                    <p class="text-xs text-orange-600" data-en="Room 408 AC unit needs repair" data-bn="রুম ৪০৮ এর এসি ইউনিট মেরামত প্রয়োজন">Room 408 AC unit needs repair</p>
+                                </div>
+                            </div>
+                            
+                            <div class="flex items-start space-x-3 p-3 bg-blue-50 rounded-lg border border-blue-200" data-mock="true">
+                                <i class="fas fa-info-circle text-blue-500 mt-1"></i>
+                                <div class="flex-1">
+                                    <p class="text-sm font-medium text-blue-800" data-en="High Occupancy Notice" data-bn="উচ্চ দখল নোটিশ">High Occupancy Notice</p>
+                                    <p class="text-xs text-blue-600" data-en="Floor 3 is at 95% capacity" data-bn="ফ্লোর ৩ ৯৫% ক্ষমতায় রয়েছে">Floor 3 is at 95% capacity</p>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="bg-card p-6 rounded-lg border border-border">
+                        <h3 class="text-lg font-semibold text-foreground mb-4" data-en="Quick Actions" data-bn="দ্রুত কার্যক্রম">Quick Actions</h3>
+                        <div class="space-y-3">
+                            <button class="w-full flex items-center justify-between p-3 bg-primary text-primary-foreground rounded-lg hover:bg-primary/90 transition-colors">
+                                <div class="flex items-center space-x-3">
+                                    <i class="fas fa-plus"></i>
+                                    <span data-en="Add New Student" data-bn="নতুন ছাত্র যোগ করুন">Add New Student</span>
+                                </div>
+                                <i class="fas fa-chevron-right"></i>
+                            </button>
+                            
+                            <button class="w-full flex items-center justify-between p-3 bg-secondary text-secondary-foreground rounded-lg hover:bg-secondary/80 transition-colors">
+                                <div class="flex items-center space-x-3">
+                                    <i class="fas fa-file-invoice-dollar"></i>
+                                    <span data-en="Generate Monthly Report" data-bn="মাসিক প্রতিবেদন তৈরি করুন">Generate Monthly Report</span>
+                                </div>
+                                <i class="fas fa-chevron-right"></i>
+                            </button>
+                            
+                            <button class="w-full flex items-center justify-between p-3 bg-secondary text-secondary-foreground rounded-lg hover:bg-secondary/80 transition-colors">
+                                <div class="flex items-center space-x-3">
+                                    <i class="fas fa-bell"></i>
+                                    <span data-en="Send Payment Reminders" data-bn="পেমেন্ট অনুস্মারক পাঠান">Send Payment Reminders</span>
+                                </div>
+                                <i class="fas fa-chevron-right"></i>
+                            </button>
+                            
+                            <button class="w-full flex items-center justify-between p-3 bg-secondary text-secondary-foreground rounded-lg hover:bg-secondary/80 transition-colors">
+                                <div class="flex items-center space-x-3">
+                                    <i class="fas fa-download"></i>
+                                    <span data-en="Export Student Data" data-bn="ছাত্র ডেটা রপ্তানি করুন">Export Student Data</span>
+                                </div>
+                                <i class="fas fa-chevron-right"></i>
+                            </button>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Student Management Table -->
+                <div class="bg-card p-6 rounded-lg border border-border">
+                    <div class="flex items-center justify-between mb-6">
+                        <h3 class="text-lg font-semibold text-foreground" data-en="Recent Student Activities" data-bn="সাম্প্রতিক ছাত্র কার্যক্রম">Recent Student Activities</h3>
+                        <div class="flex items-center space-x-3">
+                            <div class="relative">
+                                <input type="text" placeholder="Search students..." class="pl-10 pr-4 py-2 border border-input rounded-lg bg-background text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-ring" data-en-placeholder="Search students..." data-bn-placeholder="ছাত্র খুঁজুন...">
+                                <i class="fas fa-search absolute left-3 top-3 text-muted-foreground"></i>
+                            </div>
+                            <button class="bg-primary text-primary-foreground px-4 py-2 rounded-lg hover:bg-primary/90 transition-colors">
+                                <i class="fas fa-filter mr-2"></i>
+                                <span data-en="Filter" data-bn="ফিল্টার">Filter</span>
+                            </button>
+                        </div>
+                    </div>
+
+                    <div class="overflow-x-auto">
+                        <table class="w-full">
+                            <thead>
+                                <tr class="border-b border-border">
+                                    <th class="text-left py-3 px-4 font-medium text-muted-foreground" data-en="Student ID" data-bn="ছাত্র আইডি">Student ID</th>
+                                    <th class="text-left py-3 px-4 font-medium text-muted-foreground" data-en="Name" data-bn="নাম">Name</th>
+                                    <th class="text-left py-3 px-4 font-medium text-muted-foreground" data-en="Room" data-bn="রুম">Room</th>
+                                    <th class="text-left py-3 px-4 font-medium text-muted-foreground" data-en="Payment Status" data-bn="পেমেন্ট অবস্থা">Payment Status</th>
+                                    <th class="text-left py-3 px-4 font-medium text-muted-foreground" data-en="Last Payment" data-bn="শেষ পেমেন্ট">Last Payment</th>
+                                    <th class="text-left py-3 px-4 font-medium text-muted-foreground" data-en="Actions" data-bn="কার্যক্রম">Actions</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                <!-- @MAP: students.map(student => ( -->
+                                <tr class="table-row border-b border-border" data-mock="true">
+                                    <td class="py-3 px-4 text-foreground font-mono">STU001</td>
+                                    <td class="py-3 px-4">
+                                        <div class="flex items-center space-x-3">
+                                            <div class="w-8 h-8 bg-primary rounded-full flex items-center justify-center">
+                                                <span class="text-xs text-primary-foreground font-medium">AR</span>
+                                            </div>
+                                            <span class="text-foreground" data-en="Arif Rahman" data-bn="আরিফ রহমান">Arif Rahman</span>
+                                        </div>
+                                    </td>
+                                    <td class="py-3 px-4 text-foreground">301</td>
+                                    <td class="py-3 px-4">
+                                        <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-green-100 text-green-800" data-en="Paid" data-bn="পরিশোধিত">Paid</span>
+                                    </td>
+                                    <td class="py-3 px-4 text-muted-foreground">2024-01-15</td>
+                                    <td class="py-3 px-4">
+                                        <div class="flex items-center space-x-2">
+                                            <button class="text-primary hover:text-primary/80" title="View Details">
+                                                <i class="fas fa-eye"></i>
+                                            </button>
+                                            <button class="text-muted-foreground hover:text-foreground" title="Edit">
+                                                <i class="fas fa-edit"></i>
+                                            </button>
+                                        </div>
+                                    </td>
+                                </tr>
+                                
+                                <tr class="table-row border-b border-border" data-mock="true">
+                                    <td class="py-3 px-4 text-foreground font-mono">STU002</td>
+                                    <td class="py-3 px-4">
+                                        <div class="flex items-center space-x-3">
+                                            <div class="w-8 h-8 bg-blue-500 rounded-full flex items-center justify-center">
+                                                <span class="text-xs text-white font-medium">MH</span>
+                                            </div>
+                                            <span class="text-foreground" data-en="Mahbub Hasan" data-bn="মাহবুব হাসান">Mahbub Hasan</span>
+                                        </div>
+                                    </td>
+                                    <td class="py-3 px-4 text-foreground">205</td>
+                                    <td class="py-3 px-4">
+                                        <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-yellow-100 text-yellow-800" data-en="Pending" data-bn="অপেক্ষমাণ">Pending</span>
+                                    </td>
+                                    <td class="py-3 px-4 text-muted-foreground">2023-12-28</td>
+                                    <td class="py-3 px-4">
+                                        <div class="flex items-center space-x-2">
+                                            <button class="text-primary hover:text-primary/80" title="View Details">
+                                                <i class="fas fa-eye"></i>
+                                            </button>
+                                            <button class="text-muted-foreground hover:text-foreground" title="Edit">
+                                                <i class="fas fa-edit"></i>
+                                            </button>
+                                        </div>
+                                    </td>
+                                </tr>
+                                
+                                <tr class="table-row border-b border-border" data-mock="true">
+                                    <td class="py-3 px-4 text-foreground font-mono">STU003</td>
+                                    <td class="py-3 px-4">
+                                        <div class="flex items-center space-x-3">
+                                            <div class="w-8 h-8 bg-green-500 rounded-full flex items-center justify-center">
+                                                <span class="text-xs text-white font-medium">FA</span>
+                                            </div>
+                                            <span class="text-foreground" data-en="Fatima Akter" data-bn="ফাতিমা আক্তার">Fatima Akter</span>
+                                        </div>
+                                    </td>
+                                    <td class="py-3 px-4 text-foreground">412</td>
+                                    <td class="py-3 px-4">
+                                        <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-red-100 text-red-800" data-en="Overdue" data-bn="বিলম্বিত">Overdue</span>
+                                    </td>
+                                    <td class="py-3 px-4 text-muted-foreground">2023-11-22</td>
+                                    <td class="py-3 px-4">
+                                        <div class="flex items-center space-x-2">
+                                            <button class="text-primary hover:text-primary/80" title="View Details">
+                                                <i class="fas fa-eye"></i>
+                                            </button>
+                                            <button class="text-muted-foreground hover:text-foreground" title="Edit">
+                                                <i class="fas fa-edit"></i>
+                                            </button>
+                                        </div>
+                                    </td>
+                                </tr>
+                                
+                                <tr class="table-row border-b border-border" data-mock="true">
+                                    <td class="py-3 px-4 text-foreground font-mono">STU004</td>
+                                    <td class="py-3 px-4">
+                                        <div class="flex items-center space-x-3">
+                                            <div class="w-8 h-8 bg-purple-500 rounded-full flex items-center justify-center">
+                                                <span class="text-xs text-white font-medium">RK</span>
+                                            </div>
+                                            <span class="text-foreground" data-en="Rakib Khan" data-bn="রাকিব খান">Rakib Khan</span>
+                                        </div>
+                                    </td>
+                                    <td class="py-3 px-4 text-foreground">518</td>
+                                    <td class="py-3 px-4">
+                                        <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-green-100 text-green-800" data-en="Paid" data-bn="পরিশোধিত">Paid</span>
+                                    </td>
+                                    <td class="py-3 px-4 text-muted-foreground">2024-01-10</td>
+                                    <td class="py-3 px-4">
+                                        <div class="flex items-center space-x-2">
+                                            <button class="text-primary hover:text-primary/80" title="View Details">
+                                                <i class="fas fa-eye"></i>
+                                            </button>
+                                            <button class="text-muted-foreground hover:text-foreground" title="Edit">
+                                                <i class="fas fa-edit"></i>
+                                            </button>
+                                        </div>
+                                    </td>
+                                </tr>
+                                
+                                <tr class="table-row" data-mock="true">
+                                    <td class="py-3 px-4 text-foreground font-mono">STU005</td>
+                                    <td class="py-3 px-4">
+                                        <div class="flex items-center space-x-3">
+                                            <div class="w-8 h-8 bg-orange-500 rounded-full flex items-center justify-center">
+                                                <span class="text-xs text-white font-medium">NK</span>
+                                            </div>
+                                            <span class="text-foreground" data-en="Nasir Karim" data-bn="নাসির করিম">Nasir Karim</span>
+                                        </div>
+                                    </td>
+                                    <td class="py-3 px-4 text-foreground">615</td>
+                                    <td class="py-3 px-4">
+                                        <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-yellow-100 text-yellow-800" data-en="Pending" data-bn="অপেক্ষমাণ">Pending</span>
+                                    </td>
+                                    <td class="py-3 px-4 text-muted-foreground">2024-01-05</td>
+                                    <td class="py-3 px-4">
+                                        <div class="flex items-center space-x-2">
+                                            <button class="text-primary hover:text-primary/80" title="View Details">
+                                                <i class="fas fa-eye"></i>
+                                            </button>
+                                            <button class="text-muted-foreground hover:text-foreground" title="Edit">
+                                                <i class="fas fa-edit"></i>
+                                            </button>
+                                        </div>
+                                    </td>
+                                </tr>
+                                <!-- @END_MAP -->
+                            </tbody>
+                        </table>
+                    </div>
+
+                    <!-- Pagination -->
+                    <div class="flex items-center justify-between mt-6">
+                        <p class="text-sm text-muted-foreground" data-en="Showing 1 to 5 of 247 results" data-bn="২৪৭টির মধ্যে ১ থেকে ৫ দেখানো হচ্ছে">Showing 1 to 5 of 247 results</p>
+                        <div class="flex items-center space-x-2">
+                            <button class="px-3 py-1 border border-border rounded-lg text-muted-foreground hover:bg-accent hover:text-accent-foreground disabled:opacity-50" disabled>
+                                <i class="fas fa-chevron-left"></i>
+                            </button>
+                            <button class="px-3 py-1 border border-border rounded-lg bg-primary text-primary-foreground">1</button>
+                            <button class="px-3 py-1 border border-border rounded-lg text-foreground hover:bg-accent hover:text-accent-foreground">2</button>
+                            <button class="px-3 py-1 border border-border rounded-lg text-foreground hover:bg-accent hover:text-accent-foreground">3</button>
+                            <span class="px-3 py-1 text-muted-foreground">...</span>
+                            <button class="px-3 py-1 border border-border rounded-lg text-foreground hover:bg-accent hover:text-accent-foreground">50</button>
+                            <button class="px-3 py-1 border border-border rounded-lg text-muted-foreground hover:bg-accent hover:text-accent-foreground">
+                                <i class="fas fa-chevron-right"></i>
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </main>
+        <!-- @END_COMPONENT: MainContent -->
+    </div>
+
+    <script>
+        (function() {
+            // Language toggle functionality
+            const languageToggle = document.getElementById('language-toggle');
+            const elementsWithTranslation = document.querySelectorAll('[data-en]');
+            const placeholderElements = document.querySelectorAll('[data-en-placeholder]');
+            
+            let currentLanguage = 'en';
+            
+            function toggleLanguage() {
+                currentLanguage = currentLanguage === 'en' ? 'bn' : 'en';
+                
+                // Update text content
+                elementsWithTranslation.forEach(element => {
+                    const text = element.getAttribute(`data-${currentLanguage}`);
+                    if (text) {
+                        element.textContent = text;
+                        if (currentLanguage === 'bn') {
+                            element.classList.add('bengali-text');
+                        } else {
+                            element.classList.remove('bengali-text');
+                        }
+                    }
+                });
+                
+                // Update placeholder text
+                placeholderElements.forEach(element => {
+                    const placeholder = element.getAttribute(`data-${currentLanguage}-placeholder`);
+                    if (placeholder) {
+                        element.placeholder = placeholder;
+                    }
+                });
+                
+                // Update language indicator
+                const langEn = document.getElementById('lang-en');
+                const langBn = document.getElementById('lang-bn');
+                
+                if (currentLanguage === 'bn') {
+                    langEn.style.opacity = '0.5';
+                    langBn.style.opacity = '1';
+                    langBn.style.fontWeight = '600';
+                    langEn.style.fontWeight = '400';
+                } else {
+                    langEn.style.opacity = '1';
+                    langBn.style.opacity = '0.5';
+                    langEn.style.fontWeight = '600';
+                    langBn.style.fontWeight = '400';
+                }
+                
+                // Store language preference
+                localStorage.setItem('hostelLanguage', currentLanguage);
+            }
+            
+            // Load saved language preference
+            const savedLanguage = localStorage.getItem('hostelLanguage');
+            if (savedLanguage && savedLanguage !== currentLanguage) {
+                languageToggle.checked = savedLanguage === 'bn';
+                toggleLanguage();
+            }
+            
+            languageToggle.addEventListener('change', toggleLanguage);
+            
+            // Room hover effects and tooltips
+            const rooms = document.querySelectorAll('.floor-room');
+            rooms.forEach(room => {
+                room.addEventListener('click', function() {
+                    const roomTitle = this.getAttribute('title');
+                    alert(`${roomTitle}\n\n${currentLanguage === 'en' ? 'Click to view room details' : 'রুমের বিস্তারিত দেখতে ক্লিক করুন'}`);
+                });
+            });
+            
+            // Search functionality placeholder
+            const searchInput = document.querySelector('input[type="text"]');
+            if (searchInput) {
+                searchInput.addEventListener('input', function() {
+                    // TODO: Implement search functionality
+                    console.log('Search query:', this.value);
+                });
+            }
+            
+            // Table row click handlers
+            const tableRows = document.querySelectorAll('.table-row');
+            tableRows.forEach(row => {
+                row.addEventListener('click', function(e) {
+                    if (!e.target.closest('button')) {
+                        // TODO: Navigate to student details page
+                        console.log('View student details');
+                    }
+                });
+            });
+            
+            // Quick action button handlers
+            const quickActionButtons = document.querySelectorAll('button[class*="bg-primary"], button[class*="bg-secondary"]');
+            quickActionButtons.forEach(button => {
+                button.addEventListener('click', function() {
+                    // TODO: Implement respective functionality
+                    const actionText = this.querySelector('span').textContent;
+                    console.log('Quick action:', actionText);
+                });
+            });
+            
+            // Notification bell click
+            const notificationBell = document.querySelector('.fa-bell').closest('button');
+            if (notificationBell) {
+                notificationBell.addEventListener('click', function() {
+                    // TODO: Show notifications dropdown
+                    console.log('Show notifications');
+                });
+            }
+            
+            // Profile avatar click
+            const profileAvatar = document.querySelector('.fa-user').closest('div');
+            if (profileAvatar) {
+                profileAvatar.addEventListener('click', function() {
+                    // TODO: Show profile dropdown
+                    console.log('Show profile menu');
+                });
+            }
+            
+            // Sidebar navigation
+            const sidebarItems = document.querySelectorAll('.sidebar-item');
+            sidebarItems.forEach(item => {
+                item.addEventListener('click', function(e) {
+                    e.preventDefault();
+                    
+                    // Remove active class from all items
+                    sidebarItems.forEach(si => si.classList.remove('active'));
+                    
+                    // Add active class to clicked item
+                    this.classList.add('active');
+                    
+                    // TODO: Load respective page content
+                    const pageTitle = this.querySelector('span').textContent;
+                    console.log('Navigate to:', pageTitle);
+                });
+            });
+            
+            // Initialize tooltips for room status
+            const statusColors = {
+                'status-occupied': currentLanguage === 'en' ? 'Occupied' : 'দখলকৃত',
+                'status-vacant': currentLanguage === 'en' ? 'Vacant' : 'খালি',
+                'status-maintenance': currentLanguage === 'en' ? 'Maintenance' : 'রক্ষণাবেক্ষণ'
+            };
+            
+            // Update room tooltips based on language
+            function updateRoomTooltips() {
+                rooms.forEach(room => {
+                    const originalTitle = room.getAttribute('title');
+                    if (originalTitle) {
+                        // Extract room number and status
+                        const roomNumber = originalTitle.match(/Room (\d+)/)[1];
+                        const statusClass = Array.from(room.classList).find(cls => cls.startsWith('status-'));
+                        const status = statusColors[statusClass] || 'Unknown';
+                        
+                        if (currentLanguage === 'bn') {
+                            room.setAttribute('title', `রুম ${roomNumber} - ${status}`);
+                        } else {
+                            room.setAttribute('title', `Room ${roomNumber} - ${status.replace('দখলকৃত', 'Occupied').replace('খালি', 'Vacant').replace('রক্ষণাবেক্ষণ', 'Maintenance')}`);
+                        }
+                    }
+                });
+            }
+            
+            // Update tooltips on language change
+            const originalToggle = toggleLanguage;
+            toggleLanguage = function() {
+                originalToggle();
+                updateRoomTooltips();
+            };
+            
+            // Initialize tooltips
+            updateRoomTooltips();
+            
+        })();
+    </script>
+</body>
+</html>

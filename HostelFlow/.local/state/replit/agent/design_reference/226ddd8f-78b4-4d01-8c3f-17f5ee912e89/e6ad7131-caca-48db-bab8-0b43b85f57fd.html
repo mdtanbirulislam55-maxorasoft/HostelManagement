@@ -1,0 +1,635 @@
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Hostel Management System</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script>
+    tailwind.config = {
+        theme: {
+            extend: {
+                borderRadius: {
+                    lg: "var(--radius)",
+                    md: "calc(var(--radius) - 2px)",
+                    sm: "calc(var(--radius) - 4px)",
+                },
+                colors: {
+                    background: "var(--background)",
+                    foreground: "var(--foreground)",
+                    card: {
+                        DEFAULT: "var(--card)",
+                        foreground: "var(--card-foreground)",
+                    },
+                    popover: {
+                        DEFAULT: "var(--popover)",
+                        foreground: "var(--popover-foreground)",
+                    },
+                    primary: {
+                        DEFAULT: "var(--primary)",
+                        foreground: "var(--primary-foreground)",
+                    },
+                    secondary: {
+                        DEFAULT: "var(--secondary)",
+                        foreground: "var(--secondary-foreground)",
+                    },
+                    muted: {
+                        DEFAULT: "var(--muted)",
+                        foreground: "var(--muted-foreground)",
+                    },
+                    accent: {
+                        DEFAULT: "var(--accent)",
+                        foreground: "var(--accent-foreground)",
+                    },
+                    destructive: {
+                        DEFAULT: "var(--destructive)",
+                        foreground: "var(--destructive-foreground)",
+                    },
+                    border: "var(--border)",
+                    input: "var(--input)",
+                    ring: "var(--ring)",
+                }
+            }
+        }
+    };
+    </script>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Noto+Sans+Bengali:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
+    
+    <style>
+        :root {
+            --background: hsl(210 40% 98%);
+            --foreground: hsl(210 20% 15%);
+            --card: hsl(0 0% 100%);
+            --card-foreground: hsl(210 20% 15%);
+            --popover: hsl(0 0% 100%);
+            --popover-foreground: hsl(210 20% 15%);
+            --primary: hsl(217 91% 60%);
+            --primary-foreground: hsl(0 0% 98%);
+            --secondary: hsl(210 40% 96%);
+            --secondary-foreground: hsl(210 20% 25%);
+            --muted: hsl(210 40% 96%);
+            --muted-foreground: hsl(210 20% 50%);
+            --accent: hsl(217 91% 60%);
+            --accent-foreground: hsl(0 0% 98%);
+            --destructive: hsl(0 84% 60%);
+            --destructive-foreground: hsl(0 0% 98%);
+            --border: hsl(214.3 31.8% 91.4%);
+            --input: hsl(214.3 31.8% 91.4%);
+            --ring: hsl(217 91% 60%);
+            --radius: 0.5rem;
+        }
+        
+        .bengali-font { font-family: 'Noto Sans Bengali', sans-serif; }
+        .english-font { font-family: 'Inter', sans-serif; }
+        
+        .sidebar-transition { transition: transform 0.3s ease-in-out; }
+        
+        @media (max-width: 768px) {
+            .sidebar-hidden { transform: translateX(-100%); }
+        }
+        
+        .status-active { @apply bg-green-100 text-green-800; }
+        .status-inactive { @apply bg-red-100 text-red-800; }
+        .status-pending { @apply bg-yellow-100 text-yellow-800; }
+        .status-paid { @apply bg-blue-100 text-blue-800; }
+    </style>
+</head>
+<body class="bg-background text-foreground">
+    <!-- @COMPONENT: Layout Container -->
+    <div class="min-h-screen flex">
+        <!-- @COMPONENT: Sidebar Navigation -->
+        <aside id="sidebar" class="w-64 bg-card border-r border-border sidebar-transition md:translate-x-0 sidebar-hidden fixed md:static h-full z-20">
+            <div class="p-6">
+                <div class="flex items-center space-x-3">
+                    <div class="w-10 h-10 bg-primary rounded-lg flex items-center justify-center">
+                        <i class="fas fa-building text-primary-foreground"></i>
+                    </div>
+                    <div>
+                        <h1 class="text-lg font-bold" data-en="Hostel Manager" data-bn="হোস্টেল ম্যানেজার">Hostel Manager</h1>
+                        <p class="text-sm text-muted-foreground" data-en="Management System" data-bn="ব্যবস্থাপনা সিস্টেম">Management System</p>
+                    </div>
+                </div>
+            </div>
+            
+            <nav class="px-4 space-y-2">
+                <a href="#" class="flex items-center space-x-3 px-3 py-2 rounded-lg bg-primary text-primary-foreground">
+                    <i class="fas fa-chart-pie w-5"></i>
+                    <span data-en="Dashboard" data-bn="ড্যাশবোর্ড">Dashboard</span>
+                </a>
+                <a href="#" class="flex items-center space-x-3 px-3 py-2 rounded-lg text-muted-foreground hover:bg-muted transition-colors">
+                    <i class="fas fa-users w-5"></i>
+                    <span data-en="Students" data-bn="শিক্ষার্থীরা">Students</span>
+                </a>
+                <a href="#" class="flex items-center space-x-3 px-3 py-2 rounded-lg text-muted-foreground hover:bg-muted transition-colors">
+                    <i class="fas fa-bed w-5"></i>
+                    <span data-en="Rooms & Beds" data-bn="রুম ও বিছানা">Rooms & Beds</span>
+                </a>
+                <a href="#" class="flex items-center space-x-3 px-3 py-2 rounded-lg text-muted-foreground hover:bg-muted transition-colors">
+                    <i class="fas fa-money-bill-wave w-5"></i>
+                    <span data-en="Payments" data-bn="পেমেন্ট">Payments</span>
+                </a>
+                <a href="#" class="flex items-center space-x-3 px-3 py-2 rounded-lg text-muted-foreground hover:bg-muted transition-colors">
+                    <i class="fas fa-chart-bar w-5"></i>
+                    <span data-en="Reports" data-bn="রিপোর্ট">Reports</span>
+                </a>
+                <a href="#" class="flex items-center space-x-3 px-3 py-2 rounded-lg text-muted-foreground hover:bg-muted transition-colors">
+                    <i class="fas fa-cog w-5"></i>
+                    <span data-en="Settings" data-bn="সেটিংস">Settings</span>
+                </a>
+            </nav>
+        </aside>
+        <!-- @END_COMPONENT: Sidebar Navigation -->
+
+        <!-- @COMPONENT: Main Content Area -->
+        <div class="flex-1 flex flex-col md:ml-0">
+            <!-- @COMPONENT: Header -->
+            <header class="bg-card border-b border-border px-6 py-4 flex items-center justify-between">
+                <div class="flex items-center space-x-4">
+                    <button id="sidebarToggle" class="md:hidden">
+                        <i class="fas fa-bars text-xl"></i>
+                    </button>
+                    <div>
+                        <h2 class="text-xl font-semibold" data-en="Dashboard Overview" data-bn="ড্যাশবোর্ড ওভারভিউ">Dashboard Overview</h2>
+                        <p class="text-sm text-muted-foreground" data-en="Welcome back, Administrator" data-bn="স্বাগতম, প্রশাসক">Welcome back, Administrator</p>
+                    </div>
+                </div>
+                
+                <div class="flex items-center space-x-4">
+                    <!-- Language Toggle -->
+                    <div class="flex items-center space-x-2">
+                        <label class="text-sm text-muted-foreground" data-en="Language:" data-bn="ভাষা:">Language:</label>
+                        <button id="languageToggle" class="flex items-center space-x-2 px-3 py-2 bg-secondary rounded-lg hover:bg-muted transition-colors">
+                            <span id="currentLang">EN</span>
+                            <i class="fas fa-chevron-down text-xs"></i>
+                        </button>
+                    </div>
+                    
+                    <!-- Notifications -->
+                    <button class="relative p-2 text-muted-foreground hover:text-foreground">
+                        <i class="fas fa-bell text-lg"></i>
+                        <span class="absolute -top-1 -right-1 w-5 h-5 bg-destructive text-destructive-foreground text-xs rounded-full flex items-center justify-center">3</span>
+                    </button>
+                    
+                    <!-- Profile -->
+                    <div class="flex items-center space-x-3">
+                        <div class="w-8 h-8 bg-primary rounded-full flex items-center justify-center">
+                            <i class="fas fa-user text-primary-foreground text-sm"></i>
+                        </div>
+                        <span class="text-sm font-medium">Admin</span>
+                    </div>
+                </div>
+            </header>
+            <!-- @END_COMPONENT: Header -->
+
+            <!-- @COMPONENT: Main Dashboard Content -->
+            <main class="flex-1 p-6 space-y-6 overflow-auto">
+                <!-- Statistics Cards -->
+                <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+                    <div class="bg-card rounded-lg border border-border p-6">
+                        <div class="flex items-center justify-between">
+                            <div>
+                                <p class="text-sm text-muted-foreground" data-en="Total Students" data-bn="মোট শিক্ষার্থী">Total Students</p>
+                                <h3 class="text-2xl font-bold">324</h3>
+                            </div>
+                            <div class="w-12 h-12 bg-blue-100 rounded-lg flex items-center justify-center">
+                                <i class="fas fa-users text-blue-600"></i>
+                            </div>
+                        </div>
+                        <div class="mt-4 flex items-center text-sm">
+                            <span class="text-green-600">↗ 12%</span>
+                            <span class="text-muted-foreground ml-2" data-en="vs last month" data-bn="গত মাসের তুলনায়">vs last month</span>
+                        </div>
+                    </div>
+
+                    <div class="bg-card rounded-lg border border-border p-6">
+                        <div class="flex items-center justify-between">
+                            <div>
+                                <p class="text-sm text-muted-foreground" data-en="Occupied Beds" data-bn="দখলকৃত বিছানা">Occupied Beds</p>
+                                <h3 class="text-2xl font-bold">298</h3>
+                            </div>
+                            <div class="w-12 h-12 bg-green-100 rounded-lg flex items-center justify-center">
+                                <i class="fas fa-bed text-green-600"></i>
+                            </div>
+                        </div>
+                        <div class="mt-4 flex items-center text-sm">
+                            <span class="text-green-600">85%</span>
+                            <span class="text-muted-foreground ml-2" data-en="occupancy rate" data-bn="দখলের হার">occupancy rate</span>
+                        </div>
+                    </div>
+
+                    <div class="bg-card rounded-lg border border-border p-6">
+                        <div class="flex items-center justify-between">
+                            <div>
+                                <p class="text-sm text-muted-foreground" data-en="Monthly Revenue" data-bn="মাসিক আয়">Monthly Revenue</p>
+                                <h3 class="text-2xl font-bold">৳1,24,500</h3>
+                            </div>
+                            <div class="w-12 h-12 bg-yellow-100 rounded-lg flex items-center justify-center">
+                                <i class="fas fa-money-bill-wave text-yellow-600"></i>
+                            </div>
+                        </div>
+                        <div class="mt-4 flex items-center text-sm">
+                            <span class="text-green-600">↗ 8%</span>
+                            <span class="text-muted-foreground ml-2" data-en="vs last month" data-bn="গত মাসের তুলনায়">vs last month</span>
+                        </div>
+                    </div>
+
+                    <div class="bg-card rounded-lg border border-border p-6">
+                        <div class="flex items-center justify-between">
+                            <div>
+                                <p class="text-sm text-muted-foreground" data-en="Pending Payments" data-bn="বকেয়া পেমেন্ট">Pending Payments</p>
+                                <h3 class="text-2xl font-bold">26</h3>
+                            </div>
+                            <div class="w-12 h-12 bg-red-100 rounded-lg flex items-center justify-center">
+                                <i class="fas fa-exclamation-triangle text-red-600"></i>
+                            </div>
+                        </div>
+                        <div class="mt-4 flex items-center text-sm">
+                            <span class="text-red-600">Amount: ৳45,200</span>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Main Content Grid -->
+                <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
+                    <!-- Student Management Table -->
+                    <div class="lg:col-span-2 bg-card rounded-lg border border-border">
+                        <div class="p-6 border-b border-border">
+                            <div class="flex items-center justify-between">
+                                <h3 class="text-lg font-semibold" data-en="Recent Students" data-bn="সাম্প্রতিক শিক্ষার্থী">Recent Students</h3>
+                                <button class="px-4 py-2 bg-primary text-primary-foreground rounded-lg hover:bg-primary/90 transition-colors">
+                                    <span data-en="Add Student" data-bn="শিক্ষার্থী যোগ করুন">Add Student</span>
+                                </button>
+                            </div>
+                        </div>
+                        
+                        <div class="p-6">
+                            <div class="overflow-x-auto">
+                                <table class="w-full">
+                                    <thead>
+                                        <tr class="border-b border-border">
+                                            <th class="text-left py-3 px-2 font-medium text-muted-foreground" data-en="Name" data-bn="নাম">Name</th>
+                                            <th class="text-left py-3 px-2 font-medium text-muted-foreground" data-en="Room" data-bn="রুম">Room</th>
+                                            <th class="text-left py-3 px-2 font-medium text-muted-foreground" data-en="Payment Status" data-bn="পেমেন্ট স্ট্যাটাস">Payment Status</th>
+                                            <th class="text-left py-3 px-2 font-medium text-muted-foreground" data-en="Actions" data-bn="কার্যক্রম">Actions</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody>
+                                        <!-- @MAP: students.map(student => ( -->
+                                        <tr class="border-b border-border last:border-0">
+                                            <td class="py-3 px-2">
+                                                <div class="flex items-center space-x-3">
+                                                    <div class="w-8 h-8 bg-primary rounded-full flex items-center justify-center">
+                                                        <span class="text-primary-foreground text-sm font-medium">AH</span>
+                                                    </div>
+                                                    <div>
+                                                        <p class="font-medium" data-mock="true">Ahmed Hassan</p>
+                                                        <p class="text-sm text-muted-foreground" data-mock="true">ID: 2023001</p>
+                                                    </div>
+                                                </div>
+                                            </td>
+                                            <td class="py-3 px-2">
+                                                <span class="text-sm font-medium" data-mock="true">Floor 3, Room 304, Bed A</span>
+                                            </td>
+                                            <td class="py-3 px-2">
+                                                <span class="px-2 py-1 rounded-full text-xs font-medium status-paid" data-mock="true">Paid</span>
+                                            </td>
+                                            <td class="py-3 px-2">
+                                                <div class="flex space-x-2">
+                                                    <button class="text-blue-600 hover:text-blue-800">
+                                                        <i class="fas fa-edit"></i>
+                                                    </button>
+                                                    <button class="text-red-600 hover:text-red-800">
+                                                        <i class="fas fa-trash"></i>
+                                                    </button>
+                                                </div>
+                                            </td>
+                                        </tr>
+                                        
+                                        <tr class="border-b border-border last:border-0">
+                                            <td class="py-3 px-2">
+                                                <div class="flex items-center space-x-3">
+                                                    <div class="w-8 h-8 bg-secondary rounded-full flex items-center justify-center">
+                                                        <span class="text-secondary-foreground text-sm font-medium">FK</span>
+                                                    </div>
+                                                    <div>
+                                                        <p class="font-medium" data-mock="true">Fatima Khan</p>
+                                                        <p class="text-sm text-muted-foreground" data-mock="true">ID: 2023002</p>
+                                                    </div>
+                                                </div>
+                                            </td>
+                                            <td class="py-3 px-2">
+                                                <span class="text-sm font-medium" data-mock="true">Floor 2, Room 201, Bed B</span>
+                                            </td>
+                                            <td class="py-3 px-2">
+                                                <span class="px-2 py-1 rounded-full text-xs font-medium status-pending" data-mock="true">Pending</span>
+                                            </td>
+                                            <td class="py-3 px-2">
+                                                <div class="flex space-x-2">
+                                                    <button class="text-blue-600 hover:text-blue-800">
+                                                        <i class="fas fa-edit"></i>
+                                                    </button>
+                                                    <button class="text-red-600 hover:text-red-800">
+                                                        <i class="fas fa-trash"></i>
+                                                    </button>
+                                                </div>
+                                            </td>
+                                        </tr>
+                                        
+                                        <tr class="border-b border-border last:border-0">
+                                            <td class="py-3 px-2">
+                                                <div class="flex items-center space-x-3">
+                                                    <div class="w-8 h-8 bg-accent rounded-full flex items-center justify-center">
+                                                        <span class="text-accent-foreground text-sm font-medium">MR</span>
+                                                    </div>
+                                                    <div>
+                                                        <p class="font-medium" data-mock="true">Mohammad Rahman</p>
+                                                        <p class="text-sm text-muted-foreground" data-mock="true">ID: 2023003</p>
+                                                    </div>
+                                                </div>
+                                            </td>
+                                            <td class="py-3 px-2">
+                                                <span class="text-sm font-medium" data-mock="true">Floor 1, Room 105, Bed C</span>
+                                            </td>
+                                            <td class="py-3 px-2">
+                                                <span class="px-2 py-1 rounded-full text-xs font-medium status-paid" data-mock="true">Paid</span>
+                                            </td>
+                                            <td class="py-3 px-2">
+                                                <div class="flex space-x-2">
+                                                    <button class="text-blue-600 hover:text-blue-800">
+                                                        <i class="fas fa-edit"></i>
+                                                    </button>
+                                                    <button class="text-red-600 hover:text-red-800">
+                                                        <i class="fas fa-trash"></i>
+                                                    </button>
+                                                </div>
+                                            </td>
+                                        </tr>
+                                        <!-- @END_MAP )) -->
+                                    </tbody>
+                                </table>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Right Sidebar Content -->
+                    <div class="space-y-6">
+                        <!-- Floor Overview -->
+                        <div class="bg-card rounded-lg border border-border p-6">
+                            <h3 class="text-lg font-semibold mb-4" data-en="Floor Overview" data-bn="ফ্লোর ওভারভিউ">Floor Overview</h3>
+                            <div class="space-y-3">
+                                <!-- @MAP: floors.map(floor => ( -->
+                                <div class="flex items-center justify-between p-3 bg-muted rounded-lg">
+                                    <div class="flex items-center space-x-3">
+                                        <div class="w-8 h-8 bg-primary rounded-lg flex items-center justify-center">
+                                            <span class="text-primary-foreground text-sm font-bold" data-mock="true">1</span>
+                                        </div>
+                                        <div>
+                                            <p class="font-medium" data-en="Floor 1" data-bn="১ম তলা" data-mock="true">Floor 1</p>
+                                            <p class="text-sm text-muted-foreground" data-mock="true">48/50 beds</p>
+                                        </div>
+                                    </div>
+                                    <span class="text-green-600 font-medium" data-mock="true">96%</span>
+                                </div>
+                                
+                                <div class="flex items-center justify-between p-3 bg-muted rounded-lg">
+                                    <div class="flex items-center space-x-3">
+                                        <div class="w-8 h-8 bg-primary rounded-lg flex items-center justify-center">
+                                            <span class="text-primary-foreground text-sm font-bold" data-mock="true">2</span>
+                                        </div>
+                                        <div>
+                                            <p class="font-medium" data-en="Floor 2" data-bn="২য় তলা" data-mock="true">Floor 2</p>
+                                            <p class="text-sm text-muted-foreground" data-mock="true">45/50 beds</p>
+                                        </div>
+                                    </div>
+                                    <span class="text-yellow-600 font-medium" data-mock="true">90%</span>
+                                </div>
+                                
+                                <div class="flex items-center justify-between p-3 bg-muted rounded-lg">
+                                    <div class="flex items-center space-x-3">
+                                        <div class="w-8 h-8 bg-primary rounded-lg flex items-center justify-center">
+                                            <span class="text-primary-foreground text-sm font-bold" data-mock="true">3</span>
+                                        </div>
+                                        <div>
+                                            <p class="font-medium" data-en="Floor 3" data-bn="৩য় তলা" data-mock="true">Floor 3</p>
+                                            <p class="text-sm text-muted-foreground" data-mock="true">42/50 beds</p>
+                                        </div>
+                                    </div>
+                                    <span class="text-yellow-600 font-medium" data-mock="true">84%</span>
+                                </div>
+                                <!-- @END_MAP )) -->
+                            </div>
+                        </div>
+
+                        <!-- Recent Activities -->
+                        <div class="bg-card rounded-lg border border-border p-6">
+                            <h3 class="text-lg font-semibold mb-4" data-en="Recent Activities" data-bn="সাম্প্রতিক কার্যক্রম">Recent Activities</h3>
+                            <div class="space-y-4">
+                                <!-- @MAP: activities.map(activity => ( -->
+                                <div class="flex items-start space-x-3">
+                                    <div class="w-8 h-8 bg-blue-100 rounded-full flex items-center justify-center flex-shrink-0">
+                                        <i class="fas fa-user-plus text-blue-600 text-xs"></i>
+                                    </div>
+                                    <div class="flex-1">
+                                        <p class="text-sm font-medium" data-mock="true">New student registered</p>
+                                        <p class="text-xs text-muted-foreground" data-mock="true">Ahmed Hassan - Floor 3, Room 304</p>
+                                        <p class="text-xs text-muted-foreground" data-mock="true">2 hours ago</p>
+                                    </div>
+                                </div>
+                                
+                                <div class="flex items-start space-x-3">
+                                    <div class="w-8 h-8 bg-green-100 rounded-full flex items-center justify-center flex-shrink-0">
+                                        <i class="fas fa-money-bill text-green-600 text-xs"></i>
+                                    </div>
+                                    <div class="flex-1">
+                                        <p class="text-sm font-medium" data-mock="true">Payment received</p>
+                                        <p class="text-xs text-muted-foreground" data-mock="true">Mohammad Rahman - ৳3,500</p>
+                                        <p class="text-xs text-muted-foreground" data-mock="true">4 hours ago</p>
+                                    </div>
+                                </div>
+                                
+                                <div class="flex items-start space-x-3">
+                                    <div class="w-8 h-8 bg-red-100 rounded-full flex items-center justify-center flex-shrink-0">
+                                        <i class="fas fa-exclamation-triangle text-red-600 text-xs"></i>
+                                    </div>
+                                    <div class="flex-1">
+                                        <p class="text-sm font-medium" data-mock="true">Payment overdue</p>
+                                        <p class="text-xs text-muted-foreground" data-mock="true">Fatima Khan - ৳3,500</p>
+                                        <p class="text-xs text-muted-foreground" data-mock="true">1 day ago</p>
+                                    </div>
+                                </div>
+                                <!-- @END_MAP )) -->
+                            </div>
+                        </div>
+
+                        <!-- Quick Actions -->
+                        <div class="bg-card rounded-lg border border-border p-6">
+                            <h3 class="text-lg font-semibold mb-4" data-en="Quick Actions" data-bn="দ্রুত কার্যক্রম">Quick Actions</h3>
+                            <div class="space-y-3">
+                                <button class="w-full flex items-center space-x-3 p-3 bg-primary text-primary-foreground rounded-lg hover:bg-primary/90 transition-colors">
+                                    <i class="fas fa-user-plus"></i>
+                                    <span data-en="Add New Student" data-bn="নতুন শিক্ষার্থী যোগ করুন">Add New Student</span>
+                                </button>
+                                <button class="w-full flex items-center space-x-3 p-3 bg-secondary text-secondary-foreground rounded-lg hover:bg-muted transition-colors">
+                                    <i class="fas fa-bed"></i>
+                                    <span data-en="Manage Rooms" data-bn="রুম ব্যবস্থাপনা">Manage Rooms</span>
+                                </button>
+                                <button class="w-full flex items-center space-x-3 p-3 bg-secondary text-secondary-foreground rounded-lg hover:bg-muted transition-colors">
+                                    <i class="fas fa-receipt"></i>
+                                    <span data-en="Generate Report" data-bn="রিপোর্ট তৈরি করুন">Generate Report</span>
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Payment Alerts Section -->
+                <div class="bg-card rounded-lg border border-border p-6">
+                    <div class="flex items-center justify-between mb-4">
+                        <h3 class="text-lg font-semibold" data-en="Payment Alerts" data-bn="পেমেন্ট সতর্কতা">Payment Alerts</h3>
+                        <button class="text-sm text-primary hover:text-primary/80">
+                            <span data-en="View All" data-bn="সব দেখুন">View All</span>
+                        </button>
+                    </div>
+                    <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+                        <!-- @MAP: alerts.map(alert => ( -->
+                        <div class="p-4 border border-red-200 bg-red-50 rounded-lg">
+                            <div class="flex items-center space-x-3">
+                                <i class="fas fa-exclamation-circle text-red-600"></i>
+                                <div>
+                                    <p class="font-medium text-red-900" data-mock="true">Overdue Payment</p>
+                                    <p class="text-sm text-red-700" data-mock="true">Fatima Khan - Floor 2, Room 201</p>
+                                    <p class="text-xs text-red-600" data-mock="true">Amount: ৳3,500 | 5 days overdue</p>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <div class="p-4 border border-yellow-200 bg-yellow-50 rounded-lg">
+                            <div class="flex items-center space-x-3">
+                                <i class="fas fa-clock text-yellow-600"></i>
+                                <div>
+                                    <p class="font-medium text-yellow-900" data-mock="true">Payment Due Soon</p>
+                                    <p class="text-sm text-yellow-700" data-mock="true">Karim Ahmed - Floor 4, Room 405</p>
+                                    <p class="text-xs text-yellow-600" data-mock="true">Amount: ৳3,500 | Due in 2 days</p>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <div class="p-4 border border-blue-200 bg-blue-50 rounded-lg">
+                            <div class="flex items-center space-x-3">
+                                <i class="fas fa-info-circle text-blue-600"></i>
+                                <div>
+                                    <p class="font-medium text-blue-900" data-mock="true">Partial Payment</p>
+                                    <p class="text-sm text-blue-700" data-mock="true">Nasir Islam - Floor 5, Room 502</p>
+                                    <p class="text-xs text-blue-600" data-mock="true">Paid: ৳2,000 | Remaining: ৳1,500</p>
+                                </div>
+                            </div>
+                        </div>
+                        <!-- @END_MAP )) -->
+                    </div>
+                </div>
+            </main>
+            <!-- @END_COMPONENT: Main Dashboard Content -->
+        </div>
+        <!-- @END_COMPONENT: Main Content Area -->
+    </div>
+    <!-- @END_COMPONENT: Layout Container -->
+
+    <!-- Language Toggle Dropdown -->
+    <div id="languageDropdown" class="fixed top-16 right-6 w-48 bg-card border border-border rounded-lg shadow-lg z-30 hidden">
+        <div class="p-2">
+            <button class="w-full text-left px-3 py-2 rounded hover:bg-muted transition-colors language-option" data-lang="en">
+                <div class="flex items-center space-x-2">
+                    <span class="text-xl">🇺🇸</span>
+                    <span>English</span>
+                </div>
+            </button>
+            <button class="w-full text-left px-3 py-2 rounded hover:bg-muted transition-colors language-option" data-lang="bn">
+                <div class="flex items-center space-x-2">
+                    <span class="text-xl">🇧🇩</span>
+                    <span>বাংলা</span>
+                </div>
+            </button>
+        </div>
+    </div>
+
+    <script>
+        // TODO: Implement proper state management for production use
+        (function() {
+            let currentLanguage = 'en';
+            
+            // Sidebar toggle for mobile
+            const sidebarToggle = document.getElementById('sidebarToggle');
+            const sidebar = document.getElementById('sidebar');
+            
+            sidebarToggle?.addEventListener('click', () => {
+                sidebar?.classList.toggle('sidebar-hidden');
+            });
+            
+            // Language toggle functionality
+            const languageToggle = document.getElementById('languageToggle');
+            const languageDropdown = document.getElementById('languageDropdown');
+            const currentLangSpan = document.getElementById('currentLang');
+            const languageOptions = document.querySelectorAll('.language-option');
+            
+            languageToggle?.addEventListener('click', (e) => {
+                e.stopPropagation();
+                languageDropdown?.classList.toggle('hidden');
+            });
+            
+            // Close dropdown when clicking outside
+            document.addEventListener('click', () => {
+                languageDropdown?.classList.add('hidden');
+            });
+            
+            // Handle language selection
+            languageOptions.forEach(option => {
+                option.addEventListener('click', (e) => {
+                    const lang = e.currentTarget.getAttribute('data-lang');
+                    if (lang) {
+                        switchLanguage(lang);
+                        languageDropdown?.classList.add('hidden');
+                    }
+                });
+            });
+            
+            // Language switching function
+            function switchLanguage(lang) {
+                currentLanguage = lang;
+                currentLangSpan.textContent = lang.toUpperCase();
+                
+                // Update all translatable elements
+                const elements = document.querySelectorAll('[data-en][data-bn]');
+                elements.forEach(element => {
+                    const text = element.getAttribute(`data-${lang}`);
+                    if (text) {
+                        element.textContent = text;
+                    }
+                });
+                
+                // Update font class for proper rendering
+                document.body.className = lang === 'bn' ? 
+                    'bg-background text-foreground bengali-font' : 
+                    'bg-background text-foreground english-font';
+                
+                // TODO: Persist language preference to localStorage
+                // TODO: Update API calls to fetch data in selected language
+                // TODO: Update form validation messages
+                // TODO: Update date/number formatting based on language
+            }
+            
+            // Initialize with English
+            switchLanguage('en');
+            
+            // TODO: Implement real-time notifications
+            // TODO: Add form validation for student registration
+            // TODO: Implement data export functionality
+            // TODO: Add search and filter capabilities
+            // TODO: Implement payment processing integration
+            // TODO: Add role-based access control
+            // TODO: Implement manager activity logging
+        })();
+    </script>
+</body>
+</html>
